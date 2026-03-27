@@ -1,0 +1,1 @@
+- [Edge vs Solar Analyzer project](project_edge_solar.md) — Hackathon app for Solar Landscape: 8-factor edge DC scoring, Next.js 16, Mapbox, Google Places, FCC/FEMA APIs

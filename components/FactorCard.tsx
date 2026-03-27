@@ -1,126 +1,137 @@
 'use client';
 
 import { useState } from 'react';
-import type { FactorScore } from '@/lib/types';
+import type { FactorScore, ImpactDirection } from '@/lib/types';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, Wifi, WifiOff } from 'lucide-react';
+import {
+  ChevronDown,
+  Activity, GitBranch, Building2, Warehouse, Globe,
+  FileText, Waves, Zap, Wifi, WifiOff,
+} from 'lucide-react';
+
+// ── Icon map by factorId ────────────────────────────────────
+const FACTOR_ICONS: Record<string, React.ElementType> = {
+  demand:      Activity,
+  backhaul:    GitBranch,
+  saturation:  Building2,
+  suitability: Warehouse,
+  fiber:       Globe,
+  zoning:      FileText,
+  climate:     Waves,
+  power:       Zap,
+};
+
+// ── Impact badge config ──────────────────────────────────────
+const IMPACT_CONFIG: Record<ImpactDirection, { label: string; classes: string }> = {
+  boosts_edge:  { label: 'Boosts Edge',  classes: 'bg-blue-50 text-blue-700 border-blue-200' },
+  boosts_solar: { label: 'Boosts Solar', classes: 'bg-amber-50 text-amber-700 border-amber-200' },
+  adds_risk:    { label: 'Adds Risk',    classes: 'bg-red-50 text-red-700 border-red-200' },
+  neutral:      { label: 'Neutral',      classes: 'bg-zinc-50 text-zinc-600 border-zinc-200' },
+};
+
+// ── Score tier helpers ───────────────────────────────────────
+function scoreTier(s: number) {
+  if (s >= 65) return { bar: 'bg-red-400', text: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100' };
+  if (s >= 40) return { bar: 'bg-amber-400', text: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' };
+  return { bar: 'bg-emerald-400', text: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' };
+}
 
 interface FactorCardProps {
   factor: FactorScore;
+  index: number;
 }
 
-function scoreColor(score: number): string {
-  if (score >= 65) return 'text-red-600';
-  if (score >= 45) return 'text-amber-600';
-  return 'text-emerald-600';
-}
-
-function scoreBg(score: number): string {
-  if (score >= 65) return 'bg-red-50 border-red-200';
-  if (score >= 45) return 'bg-amber-50 border-amber-200';
-  return 'bg-emerald-50 border-emerald-200';
-}
-
-function scoreBarColor(score: number): string {
-  if (score >= 65) return 'bg-red-400';
-  if (score >= 45) return 'bg-amber-400';
-  return 'bg-emerald-400';
-}
-
-export function FactorCard({ factor }: FactorCardProps) {
+export function FactorCard({ factor, index }: FactorCardProps) {
   const [open, setOpen] = useState(false);
+  const Icon = FACTOR_ICONS[factor.factorId] ?? Activity;
+  const tier = scoreTier(factor.rawScore);
+  const impact = IMPACT_CONFIG[factor.impact];
 
   const dataEntries = Object.entries(factor.dataPoints).filter(
-    ([k]) => !['error'].includes(k),
+    ([k, v]) => typeof v !== 'object' && !['error'].includes(k),
   );
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className={`rounded-lg border ${scoreBg(factor.rawScore)} overflow-hidden`}>
+      <div
+        className={`factor-card bg-white rounded-xl border ${open ? 'border-zinc-300' : 'border-zinc-200'} overflow-hidden animate-fade-up`}
+        style={{ animationDelay: `${index * 0.04}s` }}
+      >
         <CollapsibleTrigger asChild>
-          <button className="w-full text-left p-4 hover:opacity-90 transition-opacity">
+          <button className="w-full text-left p-4 group">
             <div className="flex items-start gap-3">
-              <span className="text-xl leading-none mt-0.5">{factor.icon}</span>
+              {/* Icon */}
+              <div className={`w-9 h-9 rounded-lg ${tier.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                <Icon className={`w-4.5 h-4.5 ${tier.text}`} style={{ width: '18px', height: '18px' }} />
+              </div>
+
+              {/* Content */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2 mb-1">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
                   <span className="text-sm font-semibold text-zinc-800">{factor.label}</span>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {factor.status !== 'live' && (
-                      <span title={factor.status === 'fallback' ? 'Using fallback data' : 'Data unavailable'}>
-                        {factor.status === 'fallback'
-                          ? <WifiOff className="w-3.5 h-3.5 text-zinc-400" />
-                          : <WifiOff className="w-3.5 h-3.5 text-red-400" />}
-                      </span>
-                    )}
-                    {factor.status === 'live' && <Wifi className="w-3.5 h-3.5 text-emerald-500" />}
-                    <span className={`text-base font-bold ${scoreColor(factor.rawScore)}`}>
+                    {/* Data status */}
+                    {factor.status === 'live'
+                      ? <Wifi className="w-3 h-3 text-emerald-500" />
+                      : <WifiOff className="w-3 h-3 text-zinc-400" />}
+                    {/* Score */}
+                    <span className={`text-sm font-bold tabular-nums ${tier.text}`}>
                       {factor.rawScore}
                     </span>
-                    {open ? (
-                      <ChevronUp className="w-4 h-4 text-zinc-400" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-zinc-400" />
-                    )}
+                    <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
                   </div>
                 </div>
-                {/* Score bar */}
-                <div className="w-full h-1.5 bg-white/60 rounded-full mb-2">
+
+                {/* Progress bar */}
+                <div className="w-full h-1 bg-zinc-100 rounded-full mb-2">
                   <div
-                    className={`h-1.5 rounded-full ${scoreBarColor(factor.rawScore)} transition-all duration-700`}
-                    style={{ width: `${factor.rawScore}%` }}
+                    className={`h-1 rounded-full ${tier.bar}`}
+                    style={{ width: `${factor.rawScore}%`, transition: 'width 0.6s ease' }}
                   />
                 </div>
-                <p className="text-xs text-zinc-600 leading-snug">{factor.headline}</p>
+
+                {/* Headline + impact badge */}
+                <div className="flex items-start gap-2 flex-wrap">
+                  <p className="text-xs text-zinc-500 leading-snug flex-1">{factor.headline}</p>
+                  <span className={`flex-shrink-0 text-[10px] font-semibold border rounded-full px-2 py-0.5 ${impact.classes}`}>
+                    {impact.label}
+                  </span>
+                </div>
               </div>
             </div>
           </button>
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <div className="px-4 pb-4 pt-1 border-t border-white/50 space-y-3">
-            {/* Detail text */}
-            <p className="text-sm text-zinc-700 leading-relaxed">{factor.detail}</p>
+          <div className="px-4 pb-4 space-y-3 border-t border-zinc-100 pt-3">
+            {/* Detail */}
+            <p className="text-sm text-zinc-600 leading-relaxed">{factor.detail}</p>
 
-            {/* Recommendation */}
-            <div className="rounded-md bg-white/70 p-3 border border-white/80">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-1">
-                Assessment
-              </p>
-              <p className="text-sm text-zinc-800">{factor.recommendation}</p>
+            {/* Assessment */}
+            <div className={`rounded-lg ${tier.bg} border ${tier.border} p-3`}>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Assessment</p>
+              <p className="text-sm text-zinc-800 font-medium">{factor.recommendation}</p>
             </div>
 
             {/* Data points */}
             {dataEntries.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">
-                  Data Points
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {dataEntries.map(([key, val]) => {
-                    if (typeof val === 'object') return null;
-                    return (
-                      <Badge
-                        key={key}
-                        variant="secondary"
-                        className="text-xs bg-white/60 text-zinc-600"
-                      >
-                        {key.replace(/([A-Z])/g, ' $1').trim()}: {String(val)}
-                      </Badge>
-                    );
-                  })}
-                </div>
+              <div className="flex flex-wrap gap-1.5">
+                {dataEntries.map(([key, val]) => (
+                  <span key={key} className="text-[10px] font-medium bg-zinc-50 border border-zinc-200 text-zinc-600 rounded-md px-2 py-1">
+                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}: <span className="text-zinc-800">{String(val)}</span>
+                  </span>
+                ))}
               </div>
             )}
 
-            {/* Weight and status */}
-            <div className="flex items-center gap-3 text-xs text-zinc-400">
-              <span>Weight: {(factor.weight * 100).toFixed(0)}%</span>
+            {/* Meta */}
+            <div className="flex items-center gap-3 text-[10px] text-zinc-400 pt-1 border-t border-zinc-100">
+              <span>Weight {(factor.weight * 100).toFixed(0)}%</span>
               <span>·</span>
-              <span>Weighted score: {factor.weightedScore.toFixed(1)}</span>
+              <span>Weighted {factor.weightedScore.toFixed(1)} pts</span>
               <span>·</span>
               <span className={factor.status === 'live' ? 'text-emerald-600' : 'text-amber-600'}>
-                {factor.status === 'live' ? 'Live data' : factor.status === 'fallback' ? 'Fallback data' : 'Unavailable'}
+                {factor.status === 'live' ? '● Live data' : factor.status === 'fallback' ? '◐ Fallback' : '○ Unavailable'}
               </span>
             </div>
           </div>

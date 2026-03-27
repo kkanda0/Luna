@@ -1,136 +1,71 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { EdgeVerdict } from '@/lib/types';
 
 interface ScoreGaugeProps {
   score: number;
-  verdict: EdgeVerdict;
+  color: string;       // hex
+  trackColor: string;  // hex
   size?: number;
+  label?: string;
+  sublabel?: string;
 }
 
-const VERDICT_COLORS: Record<EdgeVerdict, string> = {
-  poor:     '#22c55e', // green — great for solar pitch
-  marginal: '#f59e0b',
-  moderate: '#f97316',
-  strong:   '#ef4444',
-};
-
-const VERDICT_LABELS: Record<EdgeVerdict, string> = {
-  poor:     'Poor Edge\nCandidate',
-  marginal: 'Marginal\nEdge',
-  moderate: 'Moderate\nEdge',
-  strong:   'Strong Edge\nCandidate',
-};
-
-export function ScoreGauge({ score, verdict, size = 180 }: ScoreGaugeProps) {
-  const [displayScore, setDisplayScore] = useState(0);
-  const animRef = useRef<number | null>(null);
+export function ScoreGauge({ score, color, trackColor, size = 140, label, sublabel }: ScoreGaugeProps) {
+  const [display, setDisplay] = useState(0);
+  const raf = useRef<number | null>(null);
 
   useEffect(() => {
     const start = performance.now();
-    const duration = 1200;
-
+    const dur = 1100;
     const animate = (now: number) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      // Ease out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayScore(Math.round(eased * score));
-      if (progress < 1) {
-        animRef.current = requestAnimationFrame(animate);
-      }
+      const t = Math.min((now - start) / dur, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(ease * score));
+      if (t < 1) raf.current = requestAnimationFrame(animate);
     };
-
-    animRef.current = requestAnimationFrame(animate);
-    return () => {
-      if (animRef.current) cancelAnimationFrame(animRef.current);
-    };
+    raf.current = requestAnimationFrame(animate);
+    return () => { if (raf.current) cancelAnimationFrame(raf.current); };
   }, [score]);
 
   const cx = size / 2;
   const cy = size / 2;
-  const r = (size / 2) * 0.72;
-  const strokeWidth = (size / 2) * 0.12;
-
-  // Arc spans 240 degrees (from 150° to 30°)
+  const r = (size / 2) * 0.74;
+  const sw = size * 0.09;
+  const arcSpan = 240;
   const arcStart = 150;
-  const arcTotal = 240;
 
-  function polarToCartesian(angle: number) {
+  function polar(angle: number) {
     const rad = ((angle - 90) * Math.PI) / 180;
-    return {
-      x: cx + r * Math.cos(rad),
-      y: cy + r * Math.sin(rad),
-    };
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
   }
 
-  function describeArc(startAngle: number, endAngle: number) {
-    const start = polarToCartesian(endAngle);
-    const end = polarToCartesian(startAngle);
-    const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
-    return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+  function arc(a1: number, a2: number) {
+    const s = polar(a2); const e = polar(a1);
+    const large = a2 - a1 > 180 ? '1' : '0';
+    return `M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 0 ${e.x} ${e.y}`;
   }
 
-  const bgPath = describeArc(arcStart, arcStart + arcTotal);
-  const fillAngle = (displayScore / 100) * arcTotal;
-  const fillPath = fillAngle > 0 ? describeArc(arcStart, arcStart + fillAngle) : '';
-  const color = VERDICT_COLORS[verdict];
-  const label = VERDICT_LABELS[verdict];
+  const fill = (display / 100) * arcSpan;
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* Background track */}
-        <path
-          d={bgPath}
-          fill="none"
-          stroke="#e4e4e7"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-        />
-        {/* Score fill */}
-        {fillPath && (
-          <path
-            d={fillPath}
-            fill="none"
-            stroke={color}
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-          />
+    <div className="flex flex-col items-center">
+      <svg width={size} height={size * 0.88} viewBox={`0 0 ${size} ${size * 0.88}`} style={{ overflow: 'visible' }}>
+        <path d={arc(arcStart, arcStart + arcSpan)} fill="none" stroke={trackColor} strokeWidth={sw} strokeLinecap="round" />
+        {fill > 0 && (
+          <path d={arc(arcStart, arcStart + fill)} fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" style={{ transition: 'none' }} />
         )}
-        {/* Score number */}
-        <text
-          x={cx}
-          y={cy - size * 0.04}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize={size * 0.22}
-          fontWeight="700"
-          fill={color}
-          fontFamily="system-ui, sans-serif"
-        >
-          {displayScore}
+        <text x={cx} y={cy - 2} textAnchor="middle" dominantBaseline="middle"
+          fontSize={size * 0.24} fontWeight="700" fill={color} fontFamily="inherit">
+          {display}
         </text>
-        <text
-          x={cx}
-          y={cy + size * 0.14}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize={size * 0.09}
-          fill="#71717a"
-          fontFamily="system-ui, sans-serif"
-        >
+        <text x={cx} y={cy + size * 0.17} textAnchor="middle" dominantBaseline="middle"
+          fontSize={size * 0.1} fill="#A1A1AA" fontFamily="inherit">
           / 100
         </text>
       </svg>
-      <div className="text-center">
-        {label.split('\n').map((line, i) => (
-          <p key={i} className="text-sm font-semibold leading-tight" style={{ color }}>
-            {line}
-          </p>
-        ))}
-      </div>
+      {label && <p className="text-sm font-semibold text-zinc-700 mt-1 text-center leading-tight">{label}</p>}
+      {sublabel && <p className="text-xs text-zinc-400 text-center">{sublabel}</p>}
     </div>
   );
 }

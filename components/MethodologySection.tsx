@@ -1,116 +1,119 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Separator } from '@/components/ui/separator';
+import { ChevronDown, FlaskConical } from 'lucide-react';
 
 const FACTORS = [
-  { id: 'demand',      label: 'Edge Demand Signal',   weight: '20%', source: 'Google Places Nearby Search (8km radius)', notes: 'High: hospitals, universities, financial. Medium: offices, hotels. Low: restaurants, retail.' },
-  { id: 'backhaul',    label: 'Backhaul Efficiency',  weight: '10%', source: 'Haversine distance to 25 hardcoded NJ/NY/PA DCs', notes: 'score = max(0, 100 − (distMi / 50) × 100)' },
-  { id: 'saturation',  label: 'Market Saturation',    weight: '12%', source: 'DC count within 15mi (hardcoded + Google Places)', notes: 'INVERTED: more DCs = lower score. Penalty: −10 per DC.' },
-  { id: 'suitability', label: 'Building Suitability', weight: '15%', source: 'Google Place Details types[] field', notes: 'Unsuitable (5–10): restaurants, salons. Difficult (15–30): offices, hotels. Possible (40–55): storage. Suitable (65+): warehouses.' },
-  { id: 'fiber',       label: 'Fiber Connectivity',   weight: '15%', source: 'FCC Broadband Map (geo.fcc.gov + broadbandmap.fcc.gov)', notes: '0 providers → 10; 1 → 35; 2 → 55; 3 → 70; 4+ → 85. County fallback if FCC API unavailable.' },
-  { id: 'zoning',      label: 'Zoning Friction',      weight: '10%', source: 'Census Geocoder + ACS 5-Year Estimates (2022)', notes: 'Dense urban (>10k/sqmi) → 15; Urban (5–10k) → 30; Suburban (1–5k) → 55; Rural → 75.' },
-  { id: 'climate',     label: 'Climate Risk',         weight: '8%',  source: 'FEMA ArcGIS NFHL (5s timeout) + coastal haversine', notes: 'AE zone → −55pts; X500 + coastal → moderate penalty; X zone → minimal penalty.' },
-  { id: 'power',       label: 'Power Grid Capacity',  weight: '10%', source: 'Hardcoded NJ/NY/PA utility zones (zip prefix match)', notes: '<12¢/kWh → 75; 12–14¢ → 60; 14–16¢ → 45; 16–18¢ → 30; >18¢ → 15. Combined with grid reliability score.' },
+  { label: 'Edge Demand Signal',   weight: '20%', source: 'Google Places API (8km)', score: '15–65', note: 'High: hospitals, universities, financial. Low: restaurants, retail.' },
+  { label: 'Backhaul Efficiency',  weight: '10%', source: 'Haversine to 25 regional DCs', score: '0–100', note: 'score = max(0, 100 − distMi/50 × 100)' },
+  { label: 'Market Saturation',    weight: '12%', source: 'DC count within 15mi', score: '0–100', note: 'Inverted: more DCs → lower score. Penalty: −10 per DC.' },
+  { label: 'Building Suitability', weight: '15%', source: 'Google Place Details', score: '5–68', note: 'Unsuitable (5–10): restaurants, salons. Suitable (65+): warehouses.' },
+  { label: 'Fiber Connectivity',   weight: '15%', source: 'FCC Broadband Map', score: '10–85', note: '0 providers→10, 1→35, 2→55, 3→70, 4+→85. County fallback.' },
+  { label: 'Zoning Friction',      weight: '10%', source: 'Census ACS 5-Year (2022)', score: '15–75', note: 'Dense urban >10k/sqmi → 15. Suburban 1–5k → 55. Rural → 75.' },
+  { label: 'Climate Risk',         weight: '8%',  source: 'FEMA ArcGIS NFHL', score: '10–90', note: 'AE zone → −55pts flood penalty. Coastal proximity adds up to −40.' },
+  { label: 'Power Grid Capacity',  weight: '10%', source: 'NJ/NY/PA utility database', score: '15–75', note: '<12¢/kWh → 75. >18¢ → 15. Combined with grid reliability score.' },
 ];
 
-const VERDICT_TABLE = [
-  { range: '0–34',   verdict: 'Poor Edge Candidate',     solar: 'Strong Solar Opportunity',    description: 'Majority of NJ commercial properties' },
-  { range: '35–54',  verdict: 'Marginal Edge Candidate', solar: 'Moderate Solar Opportunity',  description: 'Some industrial or warehouse sites' },
-  { range: '55–74',  verdict: 'Moderate Edge Potential', solar: 'Limited Solar Advantage',     description: 'Rare — well-positioned industrial' },
-  { range: '75–100', verdict: 'Strong Edge Candidate',   solar: 'Limited Solar Advantage',     description: 'Very rare in this market' },
+const VERDICTS = [
+  { range: '0 – 34',  edge: 'Poor candidate',     solar: 'Strong opportunity',    freq: 'Majority of NJ commercial' },
+  { range: '35 – 54', edge: 'Marginal candidate',  solar: 'Moderate opportunity',  freq: 'Some industrial/warehouse' },
+  { range: '55 – 74', edge: 'Moderate potential',  solar: 'Limited advantage',     freq: 'Rare — well-positioned industrial' },
+  { range: '75 – 100',edge: 'Strong candidate',    solar: 'Limited advantage',     freq: 'Very rare in NJ market' },
 ];
 
 export function MethodologySection() {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="border border-zinc-200 rounded-xl overflow-hidden">
+    <section className="bg-white rounded-2xl border border-zinc-200 overflow-hidden card-shadow">
       <button
-        onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between p-5 text-left bg-zinc-50 hover:bg-zinc-100 transition-colors"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-zinc-50 transition-colors"
       >
-        <div>
-          <h2 className="text-base font-bold text-zinc-800">Methodology & Data Sources</h2>
-          <p className="text-sm text-zinc-500">For judges: weights, thresholds, and data provenance</p>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center">
+            <FlaskConical className="w-4.5 h-4.5 text-violet-600" style={{ width: '18px', height: '18px' }} />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-zinc-800">Decision Logic</h2>
+            <p className="text-xs text-zinc-500">8-factor model · weights, thresholds, data sources</p>
+          </div>
         </div>
-        {open ? (
-          <ChevronUp className="w-5 h-5 text-zinc-400 flex-shrink-0" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-zinc-400 flex-shrink-0" />
-        )}
+        <ChevronDown className={`w-5 h-5 text-zinc-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div className="p-5 space-y-6">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-700 mb-3">Scoring Factors & Weights</h3>
+        <div className="border-t border-zinc-100 divide-y divide-zinc-100">
+          {/* Factor table */}
+          <div className="px-6 py-5">
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Scoring Factors</h3>
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Factor</TableHead>
-                    <TableHead>Weight</TableHead>
-                    <TableHead>Data Source</TableHead>
-                    <TableHead>Scoring Logic</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {FACTORS.map((f) => (
-                    <TableRow key={f.id}>
-                      <TableCell className="font-medium">{f.label}</TableCell>
-                      <TableCell>{f.weight}</TableCell>
-                      <TableCell className="text-xs">{f.source}</TableCell>
-                      <TableCell className="text-xs text-zinc-500">{f.notes}</TableCell>
-                    </TableRow>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-zinc-100">
+                    <th className="text-left py-2 pr-4 font-semibold text-zinc-700 whitespace-nowrap">Factor</th>
+                    <th className="text-left py-2 pr-4 font-semibold text-zinc-700 whitespace-nowrap">Weight</th>
+                    <th className="text-left py-2 pr-4 font-semibold text-zinc-700 whitespace-nowrap">Data Source</th>
+                    <th className="text-left py-2 pr-4 font-semibold text-zinc-700 whitespace-nowrap">Score Range</th>
+                    <th className="text-left py-2 font-semibold text-zinc-700">Logic</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {FACTORS.map((f, i) => (
+                    <tr key={i} className="border-b border-zinc-50 hover:bg-zinc-50">
+                      <td className="py-2 pr-4 font-medium text-zinc-800 whitespace-nowrap">{f.label}</td>
+                      <td className="py-2 pr-4">
+                        <span className="bg-violet-100 text-violet-700 rounded px-1.5 py-0.5 font-semibold">{f.weight}</span>
+                      </td>
+                      <td className="py-2 pr-4 text-zinc-500">{f.source}</td>
+                      <td className="py-2 pr-4 font-mono text-zinc-600">{f.score}</td>
+                      <td className="py-2 text-zinc-400 max-w-xs">{f.note}</td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <Separator />
-
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-700 mb-3">Score Thresholds & Verdicts</h3>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Score Range</TableHead>
-                    <TableHead>Edge Verdict</TableHead>
-                    <TableHead>Solar Pitch</TableHead>
-                    <TableHead>Expected Frequency</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {VERDICT_TABLE.map((v) => (
-                    <TableRow key={v.range}>
-                      <TableCell className="font-mono">{v.range}</TableCell>
-                      <TableCell>{v.verdict}</TableCell>
-                      <TableCell>{v.solar}</TableCell>
-                      <TableCell className="text-zinc-500 text-xs">{v.description}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+          {/* Verdict thresholds */}
+          <div className="px-6 py-5">
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Score Thresholds</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              {VERDICTS.map((v, i) => (
+                <div key={i} className={`rounded-xl border p-3 ${
+                  i === 0 ? 'bg-emerald-50 border-emerald-200' :
+                  i === 1 ? 'bg-amber-50 border-amber-200' :
+                  i === 2 ? 'bg-orange-50 border-orange-200' :
+                  'bg-red-50 border-red-200'
+                }`}>
+                  <p className="font-mono text-sm font-bold text-zinc-700 mb-1">{v.range}</p>
+                  <p className="text-xs font-semibold text-zinc-700 mb-0.5">Edge: {v.edge}</p>
+                  <p className="text-xs font-semibold text-zinc-700 mb-1.5">Solar: {v.solar}</p>
+                  <p className="text-[10px] text-zinc-400">{v.freq}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          <Separator />
-
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-700 mb-2">Design Assumptions</h3>
-            <ul className="text-sm text-zinc-600 space-y-1.5 list-disc list-inside">
-              <li>Analysis is calibrated for NJ/NY/PA market. Fallback logic handles addresses outside this region.</li>
-              <li>Scores are intentionally calibrated so typical NJ strip malls score ≤35 (poor edge candidate).</li>
-              <li>In-memory result cache (LRU, 100 entries) does not survive Vercel cold starts.</li>
-              <li>FCC Broadband API requires a registered username. County-level fallback activates if unavailable.</li>
-              <li>FEMA ArcGIS calls have a 5-second timeout; zip-code-based fallback activates if exceeded.</li>
-              <li>All factor functions have internal try/catch with AbortController timeouts (5–8s).</li>
-              <li>Promise.allSettled() ensures all 8 factors complete — rejected promises receive a conservative 30/100 score.</li>
+          {/* Assumptions */}
+          <div className="px-6 py-5 bg-zinc-50">
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Assumptions & Limitations</h3>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
+              {[
+                'Calibrated for NJ/NY/PA market. Fallback logic handles other addresses.',
+                'Scores intentionally calibrated so typical NJ strip malls score ≤35.',
+                'In-memory cache (100 entries) does not survive Vercel cold starts.',
+                'FCC Broadband API requires registered username — county fallback activates otherwise.',
+                'FEMA ArcGIS has 5s timeout — zip-code fallback activates if exceeded.',
+                'Promise.allSettled() ensures all factors complete — failures fall back to 30/100.',
+                'Solar score is derived from edge score: 108 − edgeScore (min 38, max 91).',
+                'Confidence reflects score separation, not a probabilistic model output.',
+              ].map((a, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs text-zinc-600">
+                  <span className="text-zinc-300 mt-0.5 flex-shrink-0">—</span>
+                  {a}
+                </li>
+              ))}
             </ul>
           </div>
         </div>

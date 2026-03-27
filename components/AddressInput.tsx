@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Search, ArrowRight, Loader2 } from 'lucide-react';
+
+let mapsConfigured = false;
 
 interface AddressInputProps {
   onAnalyze: (address: string) => void;
@@ -12,76 +13,84 @@ interface AddressInputProps {
 
 export function AddressInput({ onAnalyze, isLoading }: AddressInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const acRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [value, setValue] = useState('');
-  const [mapsLoaded, setMapsLoaded] = useState(false);
+  const [focused, setFocused] = useState(false);
 
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey || !inputRef.current) return;
-
-    setOptions({ key: apiKey, v: 'weekly' });
+    const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!key || !inputRef.current) return;
+    if (!mapsConfigured) { setOptions({ key, v: 'weekly' }); mapsConfigured = true; }
 
     importLibrary('places').then(() => {
-      setMapsLoaded(true);
       if (!inputRef.current) return;
-      autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
+      acRef.current = new google.maps.places.Autocomplete(inputRef.current, {
         types: ['address'],
         componentRestrictions: { country: 'us' },
         fields: ['formatted_address'],
       });
-
-      autocompleteRef.current.addListener('place_changed', () => {
-        const place = autocompleteRef.current?.getPlace();
-        if (place?.formatted_address) {
-          setValue(place.formatted_address);
-        }
+      acRef.current.addListener('place_changed', () => {
+        const place = acRef.current?.getPlace();
+        if (place?.formatted_address) setValue(place.formatted_address);
       });
-    }).catch(() => {
-      setMapsLoaded(false);
-    });
+    }).catch(() => {});
 
     return () => {
-      if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      }
+      if (acRef.current) google.maps.event.clearInstanceListeners(acRef.current);
     };
   }, []);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = value.trim();
-    if (!trimmed || isLoading) return;
-    onAnalyze(trimmed);
+    const v = value.trim();
+    if (!v || isLoading) return;
+    onAnalyze(v);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
-      <div className="flex gap-2">
-        <Input
+    <form onSubmit={handleSubmit} className="flex items-center gap-1 p-1">
+      {/* Input */}
+      <div className="relative flex-1">
+        <Search
+          className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors duration-150"
+          style={{ width: 16, height: 16, color: focused ? '#0A0A0B' : '#9CA3AF' }}
+        />
+        <input
           ref={inputRef}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder={
-            mapsLoaded
-              ? 'Enter a commercial address (e.g., 300 Kimball Ave, Westfield, NJ)'
-              : 'Enter a commercial address...'
-          }
-          className="flex-1 h-12 text-base bg-white border-zinc-300 focus:border-orange-500 focus:ring-orange-500"
+          onChange={e => setValue(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder="Enter a commercial US address…"
           disabled={isLoading}
           autoComplete="off"
+          className="w-full h-13 pl-11 pr-4 text-[15px] font-medium text-zinc-900 placeholder:text-zinc-400
+            bg-transparent outline-none disabled:opacity-50"
+          style={{ height: 52 }}
+          aria-label="Commercial address input"
         />
-        <Button
-          type="submit"
-          disabled={!value.trim() || isLoading}
-          className="h-12 px-6 bg-orange-500 hover:bg-orange-600 text-white font-semibold whitespace-nowrap"
-        >
-          {isLoading ? 'Analyzing…' : 'Analyze Property'}
-        </Button>
       </div>
-      <p className="text-xs text-zinc-500">
-        Enter any US commercial address. Analysis takes ~10 seconds and pulls live data from 6 sources.
-      </p>
+
+      {/* Submit */}
+      <button
+        type="submit"
+        disabled={!value.trim() || isLoading}
+        className="flex-shrink-0 h-11 px-5 rounded-xl text-sm font-bold text-white
+          flex items-center gap-2
+          disabled:opacity-40 disabled:cursor-not-allowed
+          transition-all duration-150 active:scale-95"
+        style={{
+          background: 'linear-gradient(135deg, #F97316, #EF4444)',
+          boxShadow: '0 2px 12px rgba(249,115,22,0.4)',
+        }}
+        aria-label="Analyze address"
+      >
+        {isLoading ? (
+          <><Loader2 className="w-4 h-4 animate-spin" /> Analyzing</>
+        ) : (
+          <>Analyze <ArrowRight className="w-4 h-4" /></>
+        )}
+      </button>
     </form>
   );
 }

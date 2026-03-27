@@ -7,15 +7,21 @@ import { FactorGrid } from './FactorGrid';
 import { ZoningRiskPanel } from './ZoningRiskPanel';
 import { MethodologySection } from './MethodologySection';
 import { BuildingOwnerSummary } from './BuildingOwnerSummary';
+import { ArrowLeft } from 'lucide-react';
 
-const MapPanel = dynamic(() => import('./MapPanel').then((m) => ({ default: m.MapPanel })), {
-  ssr: false,
-  loading: () => (
-    <div className="h-96 rounded-xl bg-zinc-100 flex items-center justify-center text-sm text-zinc-400">
-      Loading map…
-    </div>
-  ),
-});
+const MapPanel = dynamic(
+  () => import('./MapPanel').then(m => ({ default: m.MapPanel })),
+  {
+    ssr: false,
+    loading: () => (
+      <section>
+        <div className="h-96 rounded-2xl bg-zinc-100 border border-zinc-200 flex items-center justify-center animate-pulse">
+          <p className="text-sm text-zinc-400">Loading map…</p>
+        </div>
+      </section>
+    ),
+  },
+);
 
 interface ResultsDashboardProps {
   result: AnalysisResult;
@@ -24,31 +30,32 @@ interface ResultsDashboardProps {
 
 export function ResultsDashboard({ result, onReset }: ResultsDashboardProps) {
   return (
-    <div className="w-full space-y-8">
-      {/* Back button */}
+    <div className="space-y-8 pb-4">
+      {/* Breadcrumb */}
       <button
         onClick={onReset}
-        className="text-sm text-zinc-500 hover:text-zinc-700 flex items-center gap-1 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-700 transition-colors font-medium"
       >
-        ← Analyze another property
+        <ArrowLeft className="w-4 h-4" />
+        Analyze another property
       </button>
 
-      {/* Executive summary */}
+      {/* 1 · Executive decision */}
       <ExecutivePanel result={result} />
 
-      {/* Factor cards */}
+      {/* 2 · Factor breakdown */}
       <FactorGrid factors={result.factors} />
 
-      {/* Map */}
+      {/* 3 · Map / geographic context */}
       <MapPanel result={result} />
 
-      {/* Risk panel */}
+      {/* 4 · Execution risk */}
       <ZoningRiskPanel result={result} />
 
-      {/* Solar pitch */}
+      {/* 5 · Solar pitch */}
       <BuildingOwnerSummary result={result} />
 
-      {/* Methodology */}
+      {/* 6 · Methodology (collapsible) */}
       <MethodologySection />
     </div>
   );

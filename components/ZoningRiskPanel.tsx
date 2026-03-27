@@ -1,141 +1,119 @@
 import type { AnalysisResult } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ShieldAlert } from 'lucide-react';
 
 interface ZoningRiskPanelProps {
   result: AnalysisResult;
 }
 
-function RiskMeter({ label, value, color }: { label: string; value: number; color: string }) {
+interface RiskMeterProps {
+  label: string;
+  description: string;
+  risk: number; // 0-100, higher = more risk
+  icon: string;
+}
+
+function RiskMeter({ label, description, risk, icon }: RiskMeterProps) {
+  const level = risk >= 65 ? 'high' : risk >= 40 ? 'moderate' : 'low';
+  const config = {
+    high:     { bar: 'bg-red-400',    text: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-100',    badge: 'bg-red-100 text-red-700',    label: 'High' },
+    moderate: { bar: 'bg-amber-400',  text: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-100',  badge: 'bg-amber-100 text-amber-700',  label: 'Moderate' },
+    low:      { bar: 'bg-emerald-400', text: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', badge: 'bg-emerald-100 text-emerald-700', label: 'Low' },
+  }[level];
+
   return (
-    <div>
-      <div className="flex justify-between text-xs text-zinc-600 mb-1">
-        <span className="font-medium">{label}</span>
-        <span className={`font-semibold ${color}`}>{value}/100</span>
+    <div className={`rounded-xl border ${config.border} ${config.bg} p-4`}>
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{icon}</span>
+          <div>
+            <p className="text-sm font-semibold text-zinc-800">{label}</p>
+            <p className="text-xs text-zinc-500 leading-snug">{description}</p>
+          </div>
+        </div>
+        <span className={`flex-shrink-0 text-[10px] font-bold rounded-full px-2 py-0.5 ${config.badge}`}>
+          {config.label}
+        </span>
       </div>
-      <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
-        <div
-          className={`h-2 rounded-full transition-all duration-700 ${
-            value >= 65 ? 'bg-red-400' : value >= 40 ? 'bg-amber-400' : 'bg-emerald-400'
-          }`}
-          style={{ width: `${value}%` }}
-        />
+      {/* Segmented risk bar */}
+      <div className="space-y-1">
+        <div className="w-full h-2 bg-white/80 rounded-full overflow-hidden">
+          <div
+            className={`h-2 rounded-full ${config.bar} transition-all duration-700`}
+            style={{ width: `${risk}%` }}
+          />
+        </div>
+        <div className="flex justify-between text-[9px] text-zinc-400 font-medium">
+          <span>Low risk</span>
+          <span>High risk</span>
+        </div>
       </div>
     </div>
   );
 }
 
 export function ZoningRiskPanel({ result }: ZoningRiskPanelProps) {
-  const climateFactor = result.factors.find((f) => f.factorId === 'climate');
-  const zoningFactor = result.factors.find((f) => f.factorId === 'zoning');
-  const powerFactor = result.factors.find((f) => f.factorId === 'power');
+  const climateFactor  = result.factors.find(f => f.factorId === 'climate');
+  const zoningFactor   = result.factors.find(f => f.factorId === 'zoning');
+  const powerFactor    = result.factors.find(f => f.factorId === 'power');
+  const suitFactor     = result.factors.find(f => f.factorId === 'suitability');
 
-  const floodZone = String(climateFactor?.dataPoints?.floodZone ?? 'Unknown');
-  const coastalMi = Number(climateFactor?.dataPoints?.coastalProximityMi ?? 0);
-  const urbanClass = String(zoningFactor?.dataPoints?.urbanClass ?? 'Unknown');
-  const density = Number(zoningFactor?.dataPoints?.populationDensityPerSqMi ?? 0);
-  const rate = Number(powerFactor?.dataPoints?.rateCentsPerKwh ?? 0);
-  const utility = String(powerFactor?.dataPoints?.utility ?? 'Unknown');
+  const floodZone   = String(climateFactor?.dataPoints?.floodZone ?? '—');
+  const coastalMi   = Number(climateFactor?.dataPoints?.coastalProximityMi ?? 0);
+  const urbanClass  = String(zoningFactor?.dataPoints?.urbanClass ?? '—').replace(/_/g, ' ');
+  const density     = Number(zoningFactor?.dataPoints?.populationDensityPerSqMi ?? 0);
+  const rate        = Number(powerFactor?.dataPoints?.rateCentsPerKwh ?? 0);
+  const utility     = String(powerFactor?.dataPoints?.utility ?? '—');
+  const annualCost  = String(powerFactor?.dataPoints?.annualCostAt1MW ?? '—');
+  const buildingType = String(suitFactor?.dataPoints?.classificationLabel ?? '—');
 
-  const floodRisk = climateFactor ? 100 - climateFactor.rawScore : 50;
-  const zoningRisk = zoningFactor ? 100 - zoningFactor.rawScore : 50;
-  const powerRisk = powerFactor ? 100 - powerFactor.rawScore : 50;
-
-  const floodColor = floodRisk >= 65 ? 'text-red-600' : floodRisk >= 40 ? 'text-amber-600' : 'text-emerald-600';
-  const zoningColor = zoningRisk >= 65 ? 'text-red-600' : zoningRisk >= 40 ? 'text-amber-600' : 'text-emerald-600';
-  const powerColor = powerRisk >= 65 ? 'text-red-600' : powerRisk >= 40 ? 'text-amber-600' : 'text-emerald-600';
+  const floodRisk   = climateFactor  ? 100 - climateFactor.rawScore  : 50;
+  const zoningRisk  = zoningFactor   ? 100 - zoningFactor.rawScore   : 50;
+  const powerRisk   = powerFactor    ? 100 - powerFactor.rawScore    : 50;
+  const structRisk  = suitFactor     ? 100 - suitFactor.rawScore     : 70;
 
   return (
     <section>
-      <h2 className="text-lg font-bold text-zinc-800 mb-4">Environmental & Infrastructure Risks</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Flood / Climate */}
-        <Card className="border-zinc-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              🌊 Flood & Climate Risk
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <RiskMeter label="Flood risk" value={floodRisk} color={floodColor} />
-            <div className="text-xs text-zinc-600 space-y-1 pt-1">
-              <div className="flex justify-between">
-                <span className="text-zinc-500">FEMA Zone</span>
-                <span className={`font-semibold ${['A','AE','V','VE'].includes(floodZone) ? 'text-red-600' : 'text-zinc-700'}`}>
-                  {floodZone}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Coastal distance</span>
-                <span className="font-medium text-zinc-700">{coastalMi.toFixed(1)} mi</span>
-              </div>
-            </div>
-            <p className="text-xs text-zinc-500 pt-1">
-              {floodRisk >= 65
-                ? 'High flood risk requires expensive mitigation for critical equipment.'
-                : floodRisk >= 40
-                ? 'Moderate climate exposure. Coastal proximity increases insurance costs.'
-                : 'Low flood risk for this area.'}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="flex items-center gap-2 mb-4">
+        <ShieldAlert className="w-5 h-5 text-zinc-400" />
+        <h2 className="text-lg font-bold text-zinc-800">Execution & Environmental Risk</h2>
+      </div>
 
-        {/* Zoning / Density */}
-        <Card className="border-zinc-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              📋 Zoning & Permitting Risk
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <RiskMeter label="Permitting friction" value={zoningRisk} color={zoningColor} />
-            <div className="text-xs text-zinc-600 space-y-1 pt-1">
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Urban class</span>
-                <span className="font-semibold text-zinc-700 capitalize">{urbanClass.replace('_', ' ')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Pop. density</span>
-                <span className="font-medium text-zinc-700">{density.toLocaleString()}/sqmi</span>
-              </div>
+      <div className="bg-white rounded-2xl border border-zinc-200 card-shadow-md overflow-hidden">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-zinc-100">
+          {/* Risk meters */}
+          {[
+            { label: 'Flood & Climate', description: `FEMA Zone ${floodZone} · ${coastalMi.toFixed(1)} mi coast`, risk: floodRisk, icon: '🌊' },
+            { label: 'Zoning Friction', description: `${urbanClass} · ${density.toLocaleString()}/sqmi`, risk: zoningRisk, icon: '📋' },
+            { label: 'Power Cost',      description: `${utility.split(' ').slice(0,2).join(' ')} · ${rate}¢/kWh`, risk: powerRisk, icon: '⚡' },
+            { label: 'Structural Fit',  description: buildingType, risk: structRisk, icon: '🏗️' },
+          ].map((item) => (
+            <div key={item.label} className="bg-white p-4">
+              <RiskMeter {...item} />
             </div>
-            <p className="text-xs text-zinc-500 pt-1">
-              {zoningRisk >= 65
-                ? 'Dense urban zoning creates multi-year permitting friction.'
-                : zoningRisk >= 40
-                ? 'Suburban rezoning typically adds 6–18 months to project timelines.'
-                : 'Favorable zoning environment for development.'}
-            </p>
-          </CardContent>
-        </Card>
+          ))}
+        </div>
 
-        {/* Power */}
-        <Card className="border-zinc-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              ⚡ Power Grid Risk
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <RiskMeter label="Power cost risk" value={powerRisk} color={powerColor} />
-            <div className="text-xs text-zinc-600 space-y-1 pt-1">
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Utility</span>
-                <span className="font-semibold text-zinc-700 truncate max-w-[120px]" title={utility}>{utility.split(' ').slice(0, 3).join(' ')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Rate</span>
-                <span className="font-medium text-zinc-700">{rate}¢/kWh</span>
-              </div>
+        {/* Detail strip */}
+        <div className="px-5 py-3 bg-zinc-50 border-t border-zinc-100">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+            <div>
+              <p className="text-zinc-400 mb-0.5">FEMA flood zone</p>
+              <p className={`font-semibold ${['A','AE','V','VE'].includes(floodZone) ? 'text-red-600' : 'text-zinc-700'}`}>{floodZone}</p>
             </div>
-            <p className="text-xs text-zinc-500 pt-1">
-              {powerRisk >= 65
-                ? 'High power costs make edge DC economics very challenging.'
-                : powerRisk >= 40
-                ? 'Above-average rates compress margins significantly.'
-                : 'Competitive power rates for this region.'}
-            </p>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-zinc-400 mb-0.5">Population density</p>
+              <p className="font-semibold text-zinc-700">{density.toLocaleString()}/sqmi</p>
+            </div>
+            <div>
+              <p className="text-zinc-400 mb-0.5">Power cost at 1MW</p>
+              <p className="font-semibold text-zinc-700">{annualCost}/yr</p>
+            </div>
+            <div>
+              <p className="text-zinc-400 mb-0.5">Building classification</p>
+              <p className="font-semibold text-zinc-700 truncate">{buildingType}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
