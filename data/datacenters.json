@@ -1,0 +1,252 @@
+[
+  {
+    "id": "dc-001",
+    "name": "Equinix NY4",
+    "operator": "Equinix",
+    "tier": 3,
+    "coordinates": { "lat": 40.7648, "lng": -73.9808 },
+    "city": "New York",
+    "state": "NY",
+    "mw": 36
+  },
+  {
+    "id": "dc-002",
+    "name": "Equinix NY5",
+    "operator": "Equinix",
+    "tier": 3,
+    "coordinates": { "lat": 40.7580, "lng": -74.0060 },
+    "city": "New York",
+    "state": "NY",
+    "mw": 50
+  },
+  {
+    "id": "dc-003",
+    "name": "Equinix NY7",
+    "operator": "Equinix",
+    "tier": 3,
+    "coordinates": { "lat": 40.8448, "lng": -74.1557 },
+    "city": "Secaucus",
+    "state": "NJ",
+    "mw": 24
+  },
+  {
+    "id": "dc-004",
+    "name": "Equinix NY9",
+    "operator": "Equinix",
+    "tier": 3,
+    "coordinates": { "lat": 40.7215, "lng": -74.0768 },
+    "city": "Jersey City",
+    "state": "NJ",
+    "mw": 18
+  },
+  {
+    "id": "dc-005",
+    "name": "Digital Realty 165 Halsey",
+    "operator": "Digital Realty",
+    "tier": 3,
+    "coordinates": { "lat": 40.7357, "lng": -74.1728 },
+    "city": "Newark",
+    "state": "NJ",
+    "mw": 100
+  },
+  {
+    "id": "dc-006",
+    "name": "Iron Mountain Edison",
+    "operator": "Iron Mountain",
+    "tier": 3,
+    "coordinates": { "lat": 40.5187, "lng": -74.4121 },
+    "city": "Edison",
+    "state": "NJ",
+    "mw": 45
+  },
+  {
+    "id": "dc-007",
+    "name": "QTS Piscataway",
+    "operator": "QTS",
+    "tier": 3,
+    "coordinates": { "lat": 40.4990, "lng": -74.3960 },
+    "city": "Piscataway",
+    "state": "NJ",
+    "mw": 65
+  },
+  {
+    "id": "dc-008",
+    "name": "Vantage NJ1 Somerset",
+    "operator": "Vantage Data Centers",
+    "tier": 3,
+    "coordinates": { "lat": 40.5734, "lng": -74.6218 },
+    "city": "Somerset",
+    "state": "NJ",
+    "mw": 120
+  },
+  {
+    "id": "dc-009",
+    "name": "Switch SUPERNAP Metro NY",
+    "operator": "Switch",
+    "tier": 4,
+    "coordinates": { "lat": 40.8137, "lng": -74.0643 },
+    "city": "Kearny",
+    "state": "NJ",
+    "mw": 35
+  },
+  {
+    "id": "dc-010",
+    "name": "Lumen Pennsauken",
+    "operator": "Lumen",
+    "tier": 2,
+    "coordinates": { "lat": 39.9527, "lng": -75.0613 },
+    "city": "Pennsauken",
+    "state": "NJ",
+    "mw": 10
+  },
+  {
+    "id": "dc-011",
+    "name": "Equinix PH1 Philadelphia",
+    "operator": "Equinix",
+    "tier": 3,
+    "coordinates": { "lat": 39.9950, "lng": -75.1090 },
+    "city": "Philadelphia",
+    "state": "PA",
+    "mw": 40
+  },
+  {
+    "id": "dc-012",
+    "name": "Tierpoint Philadelphia",
+    "operator": "Tierpoint",
+    "tier": 3,
+    "coordinates": { "lat": 40.0024, "lng": -75.1186 },
+    "city": "Philadelphia",
+    "state": "PA",
+    "mw": 15
+  },
+  {
+    "id": "dc-013",
+    "name": "CoreSite NY1",
+    "operator": "CoreSite",
+    "tier": 3,
+    "coordinates": { "lat": 40.7549, "lng": -73.9840 },
+    "city": "New York",
+    "state": "NY",
+    "mw": 30
+  },
+  {
+    "id": "dc-014",
+    "name": "DataBank NYC",
+    "operator": "DataBank",
+    "tier": 3,
+    "coordinates": { "lat": 40.7488, "lng": -73.9967 },
+    "city": "New York",
+    "state": "NY",
+    "mw": 22
+  },
+  {
+    "id": "dc-015",
+    "name": "Navisite Clifton",
+    "operator": "Navisite",
+    "tier": 2,
+    "coordinates": { "lat": 40.8584, "lng": -74.1638 },
+    "city": "Clifton",
+    "state": "NJ",
+    "mw": 5
+  },
+  {
+    "id": "dc-016",
+    "name": "Peak 10 Bedminster",
+    "operator": "Peak 10",
+    "tier": 3,
+    "coordinates": { "lat": 40.6862, "lng": -74.6551 },
+    "city": "Bedminster",
+    "state": "NJ",
+    "mw": 14
+  },
+  {
+    "id": "dc-017",
+    "name": "Windstream Woodbridge",
+    "operator": "Windstream",
+    "tier": 2,
+    "coordinates": { "lat": 40.5579, "lng": -74.2845 },
+    "city": "Woodbridge",
+    "state": "NJ",
+    "mw": 7
+  },
+  {
+    "id": "dc-018",
+    "name": "Lightpath Long Island",
+    "operator": "Lightpath",
+    "tier": 2,
+    "coordinates": { "lat": 40.7891, "lng": -73.1350 },
+    "city": "Hauppauge",
+    "state": "NY",
+    "mw": 6
+  },
+  {
+    "id": "dc-019",
+    "name": "1 Willow Bend Parsippany",
+    "operator": "CRG West",
+    "tier": 3,
+    "coordinates": { "lat": 40.8623, "lng": -74.4204 },
+    "city": "Parsippany",
+    "state": "NJ",
+    "mw": 12
+  },
+  {
+    "id": "dc-020",
+    "name": "Zayo Pittsburgh",
+    "operator": "Zayo",
+    "tier": 2,
+    "coordinates": { "lat": 40.4406, "lng": -79.9959 },
+    "city": "Pittsburgh",
+    "state": "PA",
+    "mw": 9
+  },
+  {
+    "id": "dc-021",
+    "name": "Comcast Technology Center",
+    "operator": "Comcast",
+    "tier": 2,
+    "coordinates": { "lat": 39.9550, "lng": -75.1670 },
+    "city": "Philadelphia",
+    "state": "PA",
+    "mw": 20
+  },
+  {
+    "id": "dc-022",
+    "name": "Digital Realty NJ1",
+    "operator": "Digital Realty",
+    "tier": 3,
+    "coordinates": { "lat": 40.5468, "lng": -74.3195 },
+    "city": "Piscataway",
+    "state": "NJ",
+    "mw": 80
+  },
+  {
+    "id": "dc-023",
+    "name": "CyrusOne NJ Campus",
+    "operator": "CyrusOne",
+    "tier": 3,
+    "coordinates": { "lat": 40.5950, "lng": -74.6050 },
+    "city": "Bridgewater",
+    "state": "NJ",
+    "mw": 60
+  },
+  {
+    "id": "dc-024",
+    "name": "Cologix NYC1",
+    "operator": "Cologix",
+    "tier": 3,
+    "coordinates": { "lat": 40.7580, "lng": -73.9950 },
+    "city": "New York",
+    "state": "NY",
+    "mw": 25
+  },
+  {
+    "id": "dc-025",
+    "name": "Centurylink/Lumen Allentown",
+    "operator": "Lumen",
+    "tier": 2,
+    "coordinates": { "lat": 40.6023, "lng": -75.4714 },
+    "city": "Allentown",
+    "state": "PA",
+    "mw": 6
+  }
+]

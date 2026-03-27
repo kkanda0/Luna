@@ -1,0 +1,74 @@
+[
+  {
+    "zone": "PSEG",
+    "utilityName": "Public Service Electric & Gas (PSE&G)",
+    "states": ["NJ"],
+    "zipPrefixes": ["070", "071", "072", "073", "074", "075", "076", "077", "078", "079", "080", "081", "082", "083", "084", "085", "086", "087", "088", "089"],
+    "avgRateCentsPerKwh": 14.2,
+    "gridReliabilityScore": 55,
+    "notes": "PJM interconnected. High commercial rates. Long interconnection queues for large loads."
+  },
+  {
+    "zone": "JCP&L",
+    "utilityName": "Jersey Central Power & Light",
+    "states": ["NJ"],
+    "zipPrefixes": ["086", "087", "088", "089", "077", "076"],
+    "avgRateCentsPerKwh": 15.8,
+    "gridReliabilityScore": 40,
+    "notes": "Higher rates than PSE&G. Coastal exposure increases outage risk. Limited substation capacity in Ocean County."
+  },
+  {
+    "zone": "ACE",
+    "utilityName": "Atlantic City Electric",
+    "states": ["NJ"],
+    "zipPrefixes": ["080", "081", "082", "083", "084", "085", "086"],
+    "avgRateCentsPerKwh": 16.1,
+    "gridReliabilityScore": 35,
+    "notes": "Highest NJ residential rates. South NJ grid is more constrained. Hurricane/storm exposure on coast."
+  },
+  {
+    "zone": "RECO",
+    "utilityName": "Rockland Electric (Orange & Rockland)",
+    "states": ["NJ", "NY"],
+    "zipPrefixes": ["074", "075"],
+    "avgRateCentsPerKwh": 16.9,
+    "gridReliabilityScore": 30,
+    "notes": "Highest rates in region. Limited grid capacity for large industrial loads."
+  },
+  {
+    "zone": "ConEd",
+    "utilityName": "Consolidated Edison",
+    "states": ["NY"],
+    "zipPrefixes": ["100", "101", "102", "103", "104", "105", "106", "107", "108", "109", "110", "111", "112", "113", "114", "116"],
+    "avgRateCentsPerKwh": 18.2,
+    "gridReliabilityScore": 45,
+    "notes": "Very high NYC rates. Grid constrained in Manhattan. Significant upgrade costs for DC-scale loads."
+  },
+  {
+    "zone": "PECO",
+    "utilityName": "PECO Energy",
+    "states": ["PA"],
+    "zipPrefixes": ["190", "191", "192", "193", "194", "195", "196"],
+    "avgRateCentsPerKwh": 11.8,
+    "gridReliabilityScore": 65,
+    "notes": "Philadelphia area. More competitive rates. Better grid capacity in industrial corridors."
+  },
+  {
+    "zone": "PPL",
+    "utilityName": "PPL Electric",
+    "states": ["PA"],
+    "zipPrefixes": ["180", "181", "182", "183", "184", "185", "186", "187", "188", "189"],
+    "avgRateCentsPerKwh": 12.4,
+    "gridReliabilityScore": 60,
+    "notes": "Central/eastern PA. Reasonable rates. Good grid infrastructure in industrial zones."
+  },
+  {
+    "zone": "DEFAULT",
+    "utilityName": "Unknown Utility",
+    "states": [],
+    "zipPrefixes": [],
+    "avgRateCentsPerKwh": 14.5,
+    "gridReliabilityScore": 50,
+    "notes": "Default estimate. Actual utility data unavailable for this location."
+  }
+]
